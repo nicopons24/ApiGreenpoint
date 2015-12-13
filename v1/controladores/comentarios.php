@@ -1,29 +1,5 @@
 <?php
 
-// GET http://localhost/greenpointapi/v1/comentarios?contenedor=int&tipo=(0-papelera,
-                                                                        //1-organico,
-                                                                        //2-carton,
-                                                                        //3-plastico,
-                                                                        //4-vidrio,
-                                                                        //5-aceite,
-                                                                        //6-pilas)"
-// POST http://localhost/greenpointapi/v1/comentarios
-/*
- *  {
- *      "idContendor":"int",
- *      "tipo":"int (0-papelera,
- *                  1-organico,
- *                  2-carton,
- *                  3-plastico,
- *                  4-vidrio,
- *                  5-aceite,
- *                  6-pilas)"
- *      "fecha":"yyyy-MM-dd hh:mm:ss",
- *      "titulo":"text",
- *      "texto":"text"
- *  }
- */
-
 class comentarios
 {
     // Datos de la tabla "comentario"

@@ -1,0 +1,38 @@
+@charset "utf-8";
+body {
+    background-color: #4caf50;
+	margin: 26pt;
+	font-family:Roboto;
+	color: #212121;
+}
+h1 {
+	color: #fafafa;
+	text-align:center;
+}
+h2 {
+	color: #fafafa;
+	text-align: start;
+}
+h3 {
+	color: #fafafa;
+	text-align: start;
+}
+table {
+	align-content:center;
+	background: #e0e0e0;
+	border-radius: 5pt;
+	color: #212121;
+}
+th {
+	background: #ffd600;
+	border-radius: 5pt; 
+}
+.fondo {
+	border-radius: 10pt;
+	background: #388E3C;
+	padding: 18pt;
+	margin-top: 10pt;
+	margin-bottom: 10pt;
+	position: static;
+	
+}

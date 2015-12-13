@@ -1,0 +1,193 @@
+  <!DOCTYPE html>
+  <html lang="es">
+  <head>
+      <meta charset="UTF-8">
+      <title>Documentación Greenpoint Api</title>
+  <link href="estilos.css" rel="stylesheet" type="text/css">
+  </head>
+  <body>
+  <div>
+  <h1>Documentación API GreenPoint</h1>
+      <p>El API de GreenPoint te permite obtener en tu web o aplicacion los datos de nuestra plataforma. En este apartado encontraras toda la información necesaria para obtener los datos necesarios dentro de la aplicacion que vayas a desarrollar.</p>
+  </div>
+  <div class="fondo">
+  <h2>Descripción</h2>
+      <p>Los datos que puedes manejar usando nuestro API son:</p>
+      <ul>
+          <li><b>Usuarios:</b> Cada usuario tiene su propia clave para poder realizar las consultas necesarios dentro de la plataforma.
+          </li>
+          <li><b>Favoritos:</b> Lista de favoritos de cada usuario, requiere la clave de usuario para la obtencion de los datos.
+          </li>
+          <li><b>Comentarios:</b> Comentarios de los usuarios a cara contenedor, en este caso solo es neceario la clave del usuario para registrar nuevos comentarios.
+          </li>
+      </ul>
+      <p>Ademas los datos pueden ser obtenidos en dos formatos diferentes: JSON y XML.</p>
+      <p>Para ello solo tendremos que añadir el atributo en la url de la peticion de la siguiente manera:</p>
+      <p>&nbsp;&nbsp;&nbsp;&nbsp;Formato JSON - URL/ApiGreenpoint/(dato-a-consultar)?formato=json</p>
+      <p>&nbsp;&nbsp;&nbsp;&nbsp;Formato XML - URL/ApiGreenpoint/(dato-a-consultar)?formato=xml</p>
+  </div>
+  <div class="fondo">
+  <h2>Usuarios</h2>
+  <p>Al realizar una consulta sobre los usuarios el El tipo Usuario tiene como atributos los siguientes campos:</p>
+  <ul>
+      <li>idUsuario: Identificador unico para cada usuario.</li>
+      <li>nombre: Nombre del usuario.</li>
+      <li>contrasena: Contraseña encriptada.</li>
+      <li>email: Correo del usuario.</li>
+      <li>claveApi: Clave unica de acceso para el usuario.</li>
+  </ul>
+  <p>La siguiente tabla muestra como registrar y loguear usuarios:</p>
+  <table>
+    <tbody>
+      <tr>
+        <th scope="col">&nbsp;Metodo</th>
+        <th scope="col">&nbsp;URL</th>
+        <th scope="col">&nbsp;Parametros</th>
+        <th scope="col">&nbsp;Retorno</th>
+        <th scope="col">&nbsp;Descripcion</th>
+      </tr>
+      <tr>
+        <td>&nbsp;POST</td>
+        <td>&nbsp;URL/ApiGreenpoint/usuarios/registro</td>
+        <td>&nbsp;JSON{nombre,correo,contrasena}</td>
+        <td>&nbsp;nombre, correo, claveApi</td>
+        <td>&nbsp;Registra un nuevo usuario</td>
+      </tr>
+      <tr>
+        <td>&nbsp;POST</td>
+        <td>&nbsp;URL/ApiGreenpoint/usuarios/login</td>
+        <td>&nbsp;JSON{correo,contrasena}</td>
+        <td>&nbsp;nombre,correo,claveApi</td>
+        <td>&nbsp;Loguea un usuario</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="fondo">
+  <h2>Favoritos</h2>
+  <p>El tipo Favorito tiene como atributos los siguientes campos:</p>
+  <ul>
+      <li>idFavorito: Identificador unico para cada favorito.</li>
+      <li>idUsuario: Identificador del usuario al que pertenece.</li>
+      <li>idContenedor: Identificador unico del contenedor.</li>
+      <li>tipo: tipo del contenedor.(ver tipos)</li>
+  </ul>
+  <p>La siguiente tabla muestra como obtener y crear favoritos:</p>
+  <p>NOTA: se necesita la claveApi del usuario para obtener favoritos.</br>
+  NOTA 2: Añadir la clave en el Header con tipo Authorization</p>
+  <table>
+    <tbody>
+      <tr>
+        <th scope="col">&nbsp;Metodo</th>
+        <th scope="col">&nbsp;URL</th>
+        <th scope="col">&nbsp;Parametros</th>
+        <th scope="col">&nbsp;Retorno</th>
+        <th scope="col">&nbsp;Descripcion</th>
+      </tr>
+      <tr>
+        <td>&nbsp;GET</td>
+        <td>&nbsp;URL/ApiGreenpoint/favoritos</td>
+        <td>&nbsp;-&nbsp;</td>
+        <td>&nbsp;favoritos[]</td>
+        <td>&nbsp;Obtener todos los favoritos del usuario</td>
+      </tr>
+      <tr>
+        <td>&nbsp;GET</td>
+        <td>&nbsp;URL/ApiGreenpoint/favoritos</td>
+        <td>&nbsp;?tipo=(tipo)</td>
+        <td>&nbsp;favoritos[]</td>
+        <td>&nbsp;Obtener los favoritos del usuario de un tipo</td>
+      </tr>
+      <tr>
+        <td>&nbsp;POST</td>
+        <td>&nbsp;URL/ApiGreenpoint/favoritos</td>
+        <td>&nbsp;JSON{idContenedor,tipo}</td>
+        <td>&nbsp;idFavorito</td>
+        <td>&nbsp;Crea un nuevo favorito</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="fondo">
+  <h2>Comentarios</h2>
+  <p>El tipo Comentario tiene como atributos los siguientes campos:</p>
+  <ul>
+      <li>idComentario: Identificador unico para cada comentario.</li>
+      <li>idUsuario: Identificador del usuario que ha realizado el comentario.</li>
+      <li>idContenedor: Identificador unico del contenedor.</li>
+      <li>tipo: Tipo del contenedor.(ver tipos)</li>
+      <li>fecha:Fecha de publicacion</li>
+      <li>titulo: Titulo del comentario</li>
+      <li>texto: Cuerpo del comentario</li>
+  </ul>
+  <p>La siguiente tabla muestra como obtener y crear comentarios:</p>
+  <p>NOTA: se necesita la claveApi del usuario para crear comentarios.</br>
+  NOTA 2: Añadir la clave en el Header con tipo Authorization</p>
+  <table>
+    <tbody>
+      <tr>
+        <th scope="col">&nbsp;Metodo</th>
+        <th scope="col">&nbsp;URL</th>
+        <th scope="col">&nbsp;Parametros</th>
+        <th scope="col">&nbsp;Retorno</th>
+        <th scope="col">&nbsp;Descripcion</th>
+      </tr>
+      <tr>
+        <td>&nbsp;GET</td>
+        <td>&nbsp;URL/ApiGreenpoint/comentarios</td>
+        <td>&nbsp;?comentario=(id)&amp;tipo=(tipo)</td>
+        <td>&nbsp;comentarios[]</td>
+        <td>&nbsp;Obtener todos los comentarios de un contenedor</td>
+      </tr>
+      <tr>
+        <td>&nbsp;POST</td>
+        <td>&nbsp;URL/ApiGreenpoint/comentarios</td>
+        <td>&nbsp;JSON{idContenedor,tipo,fecha,titulo,texto}</td>
+        <td>&nbsp;idComentario</td>
+        <td>&nbsp;Crea un nuevo comentario</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="fondo">
+  <h3 id="">Tipos de contenedores</h3>
+      <p>Equivalencias de cada tipo de contenedor</p>
+      <table>
+    <tbody>
+      <tr>
+        <th scope="col">&nbsp;Contendor</th>
+        <th scope="col">&nbsp;Valor</th>
+      </tr>
+      <tr>
+        <td>&nbsp;Papelera</td>
+        <td>&nbsp;0</td>
+      </tr>
+      <tr>
+        <td>&nbsp;Organico</td>
+        <td>&nbsp;1</td>
+      </tr>
+      <tr>
+        <td>&nbsp;Carton</td>
+        <td>&nbsp;2</td>
+      </tr>
+      <tr>
+        <td>&nbsp;Plastico</td>
+        <td>&nbsp;3</td>
+      </tr>
+      <tr>
+        <td>&nbsp;Vidrio</td>
+        <td>&nbsp;4</td>
+      </tr>
+      <tr>
+        <td>&nbsp;Aceite</td>
+        <td>&nbsp;5</td>
+      </tr>
+      <tr>
+        <td>&nbsp;Pilas</td>
+        <td>&nbsp;6</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  </body>
+  </html>

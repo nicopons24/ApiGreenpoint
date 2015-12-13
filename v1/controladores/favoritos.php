@@ -1,20 +1,5 @@
 <?php
 
-// GET http://localhost/greenpointapi/v1/favoritos
-// POST http://localhost/greenpointapi/v1/favoritos
-/*
- *  {
- *      "idContendor":"int",
- *      "tipo":"int (0-papelera,
- *                  1-organico,
- *                  2-carton,
- *                  3-plastico,
- *                  4-vidrio,
- *                  5-aceite,
- *                  6-pilas)"
- *  }
- */
-
 class favoritos
 {
 

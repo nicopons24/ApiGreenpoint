@@ -1,22 +1,5 @@
 <?php
 
-// POST http://localhost/greenpointapi/v1/usuarios/login
-/*
- *  {
- *      "contrasena":"text",
- *      "correo":"text"
- *  }
- */
-// POST http://localhost/greenpointapi/v1/usuarios/registro
-/*
- *  {
- *      "nombre":"text",
- *      "contrasena":"text",
- *      "correo":"text"
- *  }
- */
-
-
 class usuarios
 {
     // Datos de la tabla "usuario"
