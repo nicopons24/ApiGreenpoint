@@ -98,8 +98,16 @@ class comentarios
     private function obtenerComentarios($idContenedor, $tipo)
     {
         try {
-            $comando = "SELECT * FROM " . self::NOMBRE_TABLA .
-                " WHERE " . self::ID_CONTENEDOR . "=? AND " . self::TIPO . "=?";
+            $comando = "SELECT c." . self::ID_COMENTARIO . " as idComentario" .
+                            ", u." . usuarios::NOMBRE . " as nombreAutor" .
+                            ", c." . self::FECHA . " as fecha" .
+                            ", c." . self::TITULO . " as titulo" .
+                            ", c." . self::TEXTO . " as cuerpo" .
+                            " FROM " . self::NOMBRE_TABLA . " c" .
+                            " INNER JOIN " . usuarios::NOMBRE_TABLA . " u" .
+                            " ON c." . self::ID_USUARIO . " = u." . usuarios::ID_USUARIO .
+                            " WHERE " . self::ID_CONTENEDOR . "=? AND " . self::TIPO . "=?" .
+                            " ORDER BY " . self::FECHA . " DESC";
 
             // Preparar sentencia
             $sentencia = ConexionBD::obtenerInstancia()->obtenerBD()->prepare($comando);

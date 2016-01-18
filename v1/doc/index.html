@@ -7,8 +7,10 @@
   </head>
   <body>
   <div>
+  <img src="img/Logo2.png" class="logoAma"/>
+  <img src="img/Logo3.png" class="logoVer"/>
   <h1>Documentación API GreenPoint</h1>
-      <p>El API de GreenPoint te permite obtener en tu web o aplicacion los datos de nuestra plataforma. En este apartado encontraras toda la información necesaria para obtener los datos necesarios dentro de la aplicacion que vayas a desarrollar.</p>
+  <p>El API de GreenPoint te permite obtener en tu web o aplicacion los datos de nuestra plataforma. En este apartado encontraras toda la información necesaria para obtener los datos necesarios dentro de la aplicacion que vayas a desarrollar.</p>
   </div>
   <div class="fondo">
   <h2>Descripción</h2>
@@ -30,7 +32,6 @@
   <h2>Usuarios</h2>
   <p>Al realizar una consulta sobre los usuarios el El tipo Usuario tiene como atributos los siguientes campos:</p>
   <ul>
-      <li>idUsuario: Identificador unico para cada usuario.</li>
       <li>nombre: Nombre del usuario.</li>
       <li>contrasena: Contraseña encriptada.</li>
       <li>email: Correo del usuario.</li>
@@ -48,14 +49,14 @@
       </tr>
       <tr>
         <td>&nbsp;POST</td>
-        <td>&nbsp;URL/ApiGreenpoint/usuarios/registro</td>
+        <td>&nbsp;URL/ApiGreenpoint/v1/usuarios/registro</td>
         <td>&nbsp;JSON{nombre,correo,contrasena}</td>
         <td>&nbsp;nombre, correo, claveApi</td>
         <td>&nbsp;Registra un nuevo usuario</td>
       </tr>
       <tr>
         <td>&nbsp;POST</td>
-        <td>&nbsp;URL/ApiGreenpoint/usuarios/login</td>
+        <td>&nbsp;URL/ApiGreenpoint/v1/usuarios/login</td>
         <td>&nbsp;JSON{correo,contrasena}</td>
         <td>&nbsp;nombre,correo,claveApi</td>
         <td>&nbsp;Loguea un usuario</td>
@@ -68,12 +69,11 @@
   <p>El tipo Favorito tiene como atributos los siguientes campos:</p>
   <ul>
       <li>idFavorito: Identificador unico para cada favorito.</li>
-      <li>idUsuario: Identificador del usuario al que pertenece.</li>
       <li>idContenedor: Identificador unico del contenedor.</li>
-      <li>tipo: tipo del contenedor.(ver tipos)</li>
+      <li>tipo: tipo del contenedor.<a href="#tipos">(ver tipos)</a></li>
   </ul>
   <p>La siguiente tabla muestra como obtener y crear favoritos:</p>
-  <p>NOTA: se necesita la claveApi del usuario para obtener favoritos.</br>
+  <p>NOTA: se necesita la claveApi del usuario para obtener favoritos.<br>
   NOTA 2: Añadir la clave en el Header con tipo Authorization</p>
   <table>
     <tbody>
@@ -86,21 +86,21 @@
       </tr>
       <tr>
         <td>&nbsp;GET</td>
-        <td>&nbsp;URL/ApiGreenpoint/favoritos</td>
+        <td>&nbsp;URL/ApiGreenpoint/v1/favoritos</td>
         <td>&nbsp;-&nbsp;</td>
         <td>&nbsp;favoritos[]</td>
         <td>&nbsp;Obtener todos los favoritos del usuario</td>
       </tr>
       <tr>
         <td>&nbsp;GET</td>
-        <td>&nbsp;URL/ApiGreenpoint/favoritos</td>
+        <td>&nbsp;URL/ApiGreenpoint/v1/favoritos</td>
         <td>&nbsp;?tipo=(tipo)</td>
         <td>&nbsp;favoritos[]</td>
         <td>&nbsp;Obtener los favoritos del usuario de un tipo</td>
       </tr>
       <tr>
         <td>&nbsp;POST</td>
-        <td>&nbsp;URL/ApiGreenpoint/favoritos</td>
+        <td>&nbsp;URL/ApiGreenpoint/v1/favoritos</td>
         <td>&nbsp;JSON{idContenedor,tipo}</td>
         <td>&nbsp;idFavorito</td>
         <td>&nbsp;Crea un nuevo favorito</td>
@@ -112,10 +112,9 @@
   <h2>Comentarios</h2>
   <p>El tipo Comentario tiene como atributos los siguientes campos:</p>
   <ul>
-      <li>idComentario: Identificador unico para cada comentario.</li>
-      <li>idUsuario: Identificador del usuario que ha realizado el comentario.</li>
+      <li>nomAutor: Nombre del usuario que ha realizado el comentario.</li>
       <li>idContenedor: Identificador unico del contenedor.</li>
-      <li>tipo: Tipo del contenedor.(ver tipos)</li>
+      <li>tipo: Tipo del contenedor.<a href="#tipos">(ver tipos)</a></li>
       <li>fecha:Fecha de publicacion</li>
       <li>titulo: Titulo del comentario</li>
       <li>texto: Cuerpo del comentario</li>
@@ -134,14 +133,14 @@
       </tr>
       <tr>
         <td>&nbsp;GET</td>
-        <td>&nbsp;URL/ApiGreenpoint/comentarios</td>
-        <td>&nbsp;?comentario=(id)&amp;tipo=(tipo)</td>
+        <td>&nbsp;URL/ApiGreenpoint/v1/comentarios</td>
+        <td>&nbsp;?contenedor=(id)&amp;tipo=(tipo)</td>
         <td>&nbsp;comentarios[]</td>
         <td>&nbsp;Obtener todos los comentarios de un contenedor</td>
       </tr>
       <tr>
         <td>&nbsp;POST</td>
-        <td>&nbsp;URL/ApiGreenpoint/comentarios</td>
+        <td>&nbsp;URL/ApiGreenpoint/v1/comentarios</td>
         <td>&nbsp;JSON{idContenedor,tipo,fecha,titulo,texto}</td>
         <td>&nbsp;idComentario</td>
         <td>&nbsp;Crea un nuevo comentario</td>
@@ -149,7 +148,7 @@
     </tbody>
   </table>
   </div>
-  <div class="fondo">
+  <div class="fondo" id="tipos">
   <h3 id="">Tipos de contenedores</h3>
       <p>Equivalencias de cada tipo de contenedor</p>
       <table>

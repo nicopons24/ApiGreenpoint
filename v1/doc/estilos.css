@@ -1,12 +1,14 @@
 @charset "utf-8";
 body {
-    background-color: #4caf50;
+    /*background-color: #4caf50;*/
+	background-color: #e0e0e0;
 	margin: 26pt;
 	font-family:Roboto;
 	color: #212121;
 }
 h1 {
-	color: #fafafa;
+	color: #4caf50;
+	/*color: #fafafa;*/
 	text-align:center;
 }
 h2 {
@@ -29,10 +31,21 @@ th {
 }
 .fondo {
 	border-radius: 10pt;
-	background: #388E3C;
+	/*background: #388E3C;*/
+	background: #4caf50;
 	padding: 18pt;
 	margin-top: 10pt;
 	margin-bottom: 10pt;
-	position: static;
-	
+}
+.logoAma {
+	margin-left: 26pt;
+	width: 100pt;
+	height: 100pt;
+	float: right;
+}
+.logoVer {
+	margin-right: 26pt;
+	width: 100pt;
+	height: 100pt;
+	float: left;
 }

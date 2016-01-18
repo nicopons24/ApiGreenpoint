@@ -62,33 +62,31 @@ $recursos_existentes = array('usuarios', 'favoritos', 'comentarios');
 if (!in_array($recurso, $recursos_existentes)) {
     throw new ExcepcionApi(ESTADO_EXISTENCIA_RECURSO, utf8_encode("El recurso al que intentas acceder no existe"));
 }
-else {
-    switch ($recurso) {
-        case $recursos_existentes[0]:
-            break;
-        case $recursos_existentes[1]:
-            if (isset($tipo))
-                array_push($peticion, $tipo);
-            break;
-        case $recursos_existentes[2]:
-            if (isset($contenedor)) {
-                array_push($peticion, $contenedor);
-            }
-            else
-                throw new ExcepcionApi(ESTADO_URL_INCORRECTA, "Falta el parametro id contenedor");
-            if (isset($tipo)) {
-                array_push($peticion, $tipo);
-            }
-            else
-                throw new ExcepcionApi(ESTADO_URL_INCORRECTA, "Falta el parametro tipo");
-            break;
-    }
-}
 
 $metodo = strtolower($_SERVER['REQUEST_METHOD']);
 
 switch ($metodo) {
     case 'get':
+        switch ($recurso) {
+            case $recursos_existentes[0]:
+                break;
+            case $recursos_existentes[1]:
+                if (isset($tipo))
+                    array_push($peticion, $tipo);
+                break;
+            case $recursos_existentes[2]:
+                if (isset($contenedor)) {
+                    array_push($peticion, $contenedor);
+                }
+                else
+                    throw new ExcepcionApi(ESTADO_URL_INCORRECTA, "Falta el parametro id contenedor");
+                if (isset($tipo)) {
+                    array_push($peticion, $tipo);
+                }
+                else
+                    throw new ExcepcionApi(ESTADO_URL_INCORRECTA, "Falta el parametro tipo");
+                break;
+        }
     case 'post':
     case 'put':
     case 'delete':

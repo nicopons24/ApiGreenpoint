@@ -139,8 +139,11 @@ class favoritos
     private function obtenerFavoritosTipo($idUsuario, $tipo)
     {
         try {
-            $comando = "SELECT * FROM " . self::NOMBRE_TABLA .
-                " WHERE " . self::ID_USUARIO . "=? AND " . self::TIPO . "=?";
+            $comando = "SELECT " . self::ID_FAVORITO . " as idFavorito" .
+                        ", " . self::ID_CONTENEDOR . " as idContenedor" .
+                        ", " . self::TIPO . " as tipo" .
+                        " FROM " . self::NOMBRE_TABLA .
+                        " WHERE " . self::ID_USUARIO . "=? AND " . self::TIPO . "=?";
 
             // Preparar sentencia
             $sentencia = ConexionBD::obtenerInstancia()->obtenerBD()->prepare($comando);
@@ -168,8 +171,11 @@ class favoritos
     private function obtenerFavoritos($idUsuario)
     {
         try {
-            $comando = "SELECT * FROM " . self::NOMBRE_TABLA .
-                " WHERE " . self::ID_USUARIO . "=?";
+            $comando = "SELECT " . self::ID_FAVORITO . " as idFavorito" .
+                        ", " . self::ID_CONTENEDOR . " as idContenedor" .
+                        ", " . self::TIPO . " as tipo" .
+                        " FROM " . self::NOMBRE_TABLA .
+                        " WHERE " . self::ID_USUARIO . "=?";
 
             // Preparar sentencia
             $sentencia = ConexionBD::obtenerInstancia()->obtenerBD()->prepare($comando);

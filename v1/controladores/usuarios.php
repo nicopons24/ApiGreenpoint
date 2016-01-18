@@ -169,7 +169,7 @@ class usuarios
             if ($sentencia) {
                 $resultado = $sentencia->fetch();
 
-                if (self::validarContrasena($contrasena, $resultado['contrasena'])) {
+                if (self::validarContrasena($contrasena, $resultado[self::CONTRASENA])) {
                     return true;
                 } else return false;
             } else {
