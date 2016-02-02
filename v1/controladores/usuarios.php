@@ -9,6 +9,8 @@ class usuarios
     const CONTRASENA = "contrasena";
     const CORREO = "email";
     const CLAVE_API = "clave_api";
+    const GOOGLE = "IdGoogle";
+    const FACEBOOK = "IdFacebook";
 
     const ESTADO_CREACION_EXITOSA = 1;
     const ESTADO_CREACION_FALLIDA = 2;
@@ -25,11 +27,65 @@ class usuarios
             return self::registrar();
         } else if ($peticion[0] == 'login') {
             return self::loguear();
+        } else if ($peticion[0] == 'google') {
+            return self::loginGoogle();
+        } else if ($peticion[0] == 'facebook') {
+            //return self::
         } else {
             throw new ExcepcionApi(self::ESTADO_URL_INCORRECTA, "Url mal formada", 400);
         }
     }
 
+    private function loginGoogle() {
+        $cuerpo = file_get_contents('php://input');
+        $usuario = json_decode($cuerpo);
+
+        $correo = $usuario->correo;
+
+        if(self::isUsuarioRegistrado($correo)){
+            $id = $usuario->contrasena;
+            return self::vincularGoogle($correo, $id);
+        }
+        else
+            return self::registrarGoogle($usuario);
+    }
+
+    private function vincularGoogle($correo, $id) {
+        $comando = "UPDATE " . self::NOMBRE_TABLA . " SET " . self::GOOGLE . " = ? WHERE " . self::CORREO . " = ?";
+
+        $pdo = ConexionBD::obtenerInstancia()->obtenerBD();
+
+        $sentencia = $pdo->prepare($comando);
+
+        $sentencia->bindParam(1, $id);
+        $sentencia->bindParam(2, $correo);
+
+        $resultado = $sentencia->execute();
+
+        if($resultado) {
+            $r = $sentencia->fetch(PDO::FETCH_ASSOC);
+            return [
+                "estado" => self::ESTADO_CREACION_EXITOSA,
+                "mensaje" => utf8_encode("Registro con exito!"),
+                "claveApi" => $r[self::CLAVE_API]
+            ];
+        }
+        else {
+            throw new ExcepcionApi(self::ESTADO_CREACION_FALLIDA, "Ha ocurrido un error");
+        }
+    }
+
+    private function registrarGoogle($usuario) {
+        $resultado = self::crear($usuario);
+        if ($resultado) {
+            $correo = $usuario->correo;
+            $id = $usuario->contrasena;
+            return self::vincularGoogle($correo, $id);
+        }
+        else {
+            throw new ExcepcionApi(self::ESTADO_CREACION_FALLIDA, "Ha ocurrido un error");
+        }
+    }
 
     /**
      * Crea un nuevo usuario en la base de datos
@@ -41,13 +97,14 @@ class usuarios
 
         $resultado = self::crear($usuario);
 
-        switch ($resultado) {
+        switch ($resultado['estado']) {
             case self::ESTADO_CREACION_EXITOSA:
                 http_response_code(200);
                 return
                     [
                         "estado" => self::ESTADO_CREACION_EXITOSA,
-                        "mensaje" => utf8_encode("Registro con exito!")
+                        "mensaje" => utf8_encode("Registro con exito!"),
+                        "claveApi" => $resultado["clave"]
                     ];
                 break;
             case self::ESTADO_CREACION_FALLIDA:
@@ -66,44 +123,73 @@ class usuarios
     private function crear($datosUsuario)
     {
         $nombre = $datosUsuario->nombre;
-
-        $contrasena = $datosUsuario->contrasena;
-        $contrasenaEncriptada = self::encriptarContrasena($contrasena);
-
         $correo = $datosUsuario->correo;
 
-        $claveApi = self::generarClaveApi();
+        if (self::isUsuarioRegistrado($correo)) {
 
-        try {
+            $contrasena = $datosUsuario->contrasena;
+            $contrasenaEncriptada = self::encriptarContrasena($contrasena);
 
-            $pdo = ConexionBD::obtenerInstancia()->obtenerBD();
+            $claveApi = self::generarClaveApi();
 
-            // Sentencia INSERT
-            $comando = "INSERT INTO " . self::NOMBRE_TABLA . " ( " .
-                self::NOMBRE . "," .
-                self::CONTRASENA . "," .
-                self::CLAVE_API . "," .
-                self::CORREO . ")" .
-                " VALUES(?,?,?,?)";
+            try {
 
-            $sentencia = $pdo->prepare($comando);
+                $pdo = ConexionBD::obtenerInstancia()->obtenerBD();
 
-            $sentencia->bindParam(1, $nombre);
-            $sentencia->bindParam(2, $contrasenaEncriptada);
-            $sentencia->bindParam(3, $claveApi);
-            $sentencia->bindParam(4, $correo);
+                // Sentencia INSERT
+                $comando = "INSERT INTO " . self::NOMBRE_TABLA . " ( " .
+                    self::NOMBRE . "," .
+                    self::CONTRASENA . "," .
+                    self::CLAVE_API . "," .
+                    self::CORREO . ")" .
+                    " VALUES(?,?,?,?)";
 
-            $resultado = $sentencia->execute();
+                $sentencia = $pdo->prepare($comando);
 
-            if ($resultado) {
-                return self::ESTADO_CREACION_EXITOSA;
-            } else {
-                return self::ESTADO_CREACION_FALLIDA;
+                $sentencia->bindParam(1, $nombre);
+                $sentencia->bindParam(2, $contrasenaEncriptada);
+                $sentencia->bindParam(3, $claveApi);
+                $sentencia->bindParam(4, $correo);
+
+                $resultado = $sentencia->execute();
+
+                if ($resultado) {
+                    return [
+                        "estado" => self::ESTADO_CREACION_EXITOSA,
+                        "clave" => $claveApi
+                    ];
+                } else {
+                    throw new ExcepcionApi(self::ESTADO_CREACION_FALLIDA, "Ha ocurrido un error");
+                }
+            } catch (PDOException $e) {
+                throw new ExcepcionApi(self::ESTADO_ERROR_BD, $e->getMessage());
             }
-        } catch (PDOException $e) {
-            throw new ExcepcionApi(self::ESTADO_ERROR_BD, $e->getMessage());
+        }
+        else {
+            return [
+                "estado" => self::ESTADO_CREACION_FALLIDA,
+                "clave" => null
+            ];
         }
 
+    }
+
+    private function isUsuarioRegistrado($correo)
+    {
+        $pdo = ConexionBD::obtenerInstancia()->obtenerBD();
+
+        $comando = "SELECT * FROM " . SELF::NOMBRE_TABLA . " WHERE " . self::CORREO . " = ?";
+        $sentencia = $pdo->prepare($comando);
+
+        $sentencia->bindParam(1, $correo);
+
+        $resultado = $sentencia->execute();
+
+        if ($resultado) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**

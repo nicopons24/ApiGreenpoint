@@ -7,7 +7,7 @@ require_once "VistaApi.php";
  */
 class VistaJson extends VistaApi
 {
-    public function __construct($estado = 400)
+    public function __construct($estado = 200)
     {
         $this->estado = $estado;
     }

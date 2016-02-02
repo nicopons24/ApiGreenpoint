@@ -9,6 +9,9 @@ class favoritos
     const ID_USUARIO = "id_usuario";
     const ID_CONTENEDOR = "id_contenedor";
     const TIPO = "tipo_contenedor";
+    const LATITUD = "lat_contenedor";
+    const LONGITUD = "lon_contenedor";
+    const DIRECCION = "dir_contenedor";
 
     const ESTADO_EXITO = 1;
     const ESTADO_ERROR = 2;
@@ -53,57 +56,93 @@ class favoritos
         ];
     }
 
-    public static function delete($peticion)
+    public static function delete()
     {
         $idUsuario = usuarios::autorizar();
 
-        if (!empty($peticion[0])) {
-            if (self::eliminar($idUsuario, $peticion[0]) > 0) {
-                http_response_code(200);
+        $cabeceras = apache_request_headers();
+        $favorito = [
+            "idContenedor" => $cabeceras['idContenedor'],
+            "tipo" => $cabeceras['tipoContenedor']
+        ];
+
+
+        $resultado = self::eliminar($idUsuario, $favorito);
+        http_response_code(200);
+        return [
+            "estado" => self::ESTADO_EXITO,
+            "mensaje" => "Favorito eliminado correctamente",
+            "idFavorito" => $resultado['idFavorito'],
+            "eliminados" => $resultado['eliminados']
+        ];
+    }
+
+    private function eliminar($idUsuario, $favorito)
+    {
+        if ($favorito) {
+            try {
+                $idContenedor = $favorito['idContenedor'];
+                $tipo = $favorito['tipo'];
+
+                $pdo = ConexionBD::obtenerInstancia()->obtenerBD();
+
+                $comando = "SELECT " . self::ID_FAVORITO . " as idFavorito " .
+                    "FROM " . self::NOMBRE_TABLA .
+                    " WHERE " . self::ID_USUARIO . "=? AND " .
+                    self::ID_CONTENEDOR . "=? AND " .
+                    self::TIPO . "=?";
+
+                // Preparar la sentencia
+                $sentencia = $pdo->prepare($comando);
+
+                $sentencia->bindParam(1, $idUsuario);
+                $sentencia->bindParam(2, $idContenedor, PDO::PARAM_INT);
+                $sentencia->bindParam(3, $tipo, PDO::PARAM_INT);
+
+                $sentencia->execute();
+
+                $resultado = $sentencia->fetchAll(PDO::FETCH_ASSOC);
+
+                if (!empty($resultado)) {
+                    // Sentencia DELETE
+                    $comando = "DELETE FROM " . self::NOMBRE_TABLA .
+                        " WHERE " . self::ID_USUARIO . "=? AND " .
+                        self::ID_CONTENEDOR . "=? AND " . self::TIPO . "=?";
+
+                    // Preparar la sentencia
+                    $sentencia = $pdo->prepare($comando);
+
+                    $sentencia->bindParam(1, $idUsuario);
+                    $sentencia->bindParam(2, $idContenedor);
+                    $sentencia->bindParam(3, $tipo);
+
+                    $sentencia->execute();
+                }
+                else {
+                    throw new ExcepcionApi(self::ESTADO_ERROR, "No existe ningun favorito con el id y tipo indicados");
+                }
                 return [
-                    "estado" => self::ESTADO_EXITO,
-                    "mensaje" => "Favorito eliminado correctamente"
+                    "idFavorito" => $resultado[0]['idFavorito'],
+                    "eliminados" => $sentencia->rowCount()
                 ];
-            } else {
-                throw new ExcepcionApi(self::ESTADO_NO_ENCONTRADO,
-                    "El favorito que deseas eliminar no existe", 404);
+
+            } catch (PDOException $e) {
+                throw new ExcepcionApi(self::ESTADO_ERROR_BD, $e->getMessage());
             }
-        } else {
-            throw new ExcepcionApi(self::ESTADO_PARAMETROS_INCORRECTOS, "Falta id del favorito", 422);
         }
     }
 
-    private function eliminar($idUsuario, $idContenedor, $tipo)
+    private
+    function crear($idUsuario, $favorito)
     {
-        try {
-            // Sentencia DELETE
-            $comando = "DELETE FROM " . self::NOMBRE_TABLA .
-                " WHERE " . self::ID_USUARIO . "=? AND " .
-                self::ID_CONTENEDOR . "=? AND " . self::TIPO . "=?";
-
-            // Preparar la sentencia
-            $sentencia = ConexionBD::obtenerInstancia()->obtenerBD()->prepare($comando);
-
-            $sentencia->bindParam(1, $idUsuario);
-            $sentencia->bindParam(2, $idContenedor);
-            $sentencia->bindParam(3, $tipo);
-
-            $sentencia->execute();
-
-            return $sentencia->rowCount();
-
-        } catch (PDOException $e) {
-            throw new ExcepcionApi(self::ESTADO_ERROR_BD, $e->getMessage());
-        }
-    }
-
-    private function crear($idUsuario, $favoritos)
-    {
-        if ($favoritos) {
+        if ($favorito) {
             try {
 
-                $idContenedor = $favoritos->idContenedor;
-                $tipo = $favoritos->tipo;
+                $idContenedor = $favorito->idContenedor;
+                $tipo = $favorito->tipo;
+                $direccion = $favorito->direccion;
+                $lat = $favorito->lat;
+                $lon = $favorito->lon;
 
                 $pdo = ConexionBD::obtenerInstancia()->obtenerBD();
 
@@ -111,8 +150,12 @@ class favoritos
                 $comando = "INSERT INTO " . self::NOMBRE_TABLA . " ( " .
                     self::ID_USUARIO . "," .
                     self::ID_CONTENEDOR . "," .
-                    self::TIPO . ")" .
-                    " VALUES(?,?,?)";
+                    self::TIPO . "," .
+                    self::DIRECCION . "," .
+                    self::LATITUD . "," .
+                    self::LONGITUD .
+                    ")" .
+                    " VALUES(?,?,?,?,?,?)";
 
                 // Preparar la sentencia
                 $sentencia = $pdo->prepare($comando);
@@ -120,6 +163,9 @@ class favoritos
                 $sentencia->bindParam(1, $idUsuario, PDO::PARAM_INT);
                 $sentencia->bindParam(2, $idContenedor, PDO::PARAM_INT);
                 $sentencia->bindParam(3, $tipo, PDO::PARAM_INT);
+                $sentencia->bindParam(4, $direccion);
+                $sentencia->bindParam(5, $lat);
+                $sentencia->bindParam(6, $lon);
 
                 $sentencia->execute();
 
@@ -136,14 +182,18 @@ class favoritos
         }
     }
 
-    private function obtenerFavoritosTipo($idUsuario, $tipo)
+    private
+    function obtenerFavoritosTipo($idUsuario, $tipo)
     {
         try {
             $comando = "SELECT " . self::ID_FAVORITO . " as idFavorito" .
-                        ", " . self::ID_CONTENEDOR . " as idContenedor" .
-                        ", " . self::TIPO . " as tipo" .
-                        " FROM " . self::NOMBRE_TABLA .
-                        " WHERE " . self::ID_USUARIO . "=? AND " . self::TIPO . "=?";
+                ", " . self::ID_CONTENEDOR . " as idContenedor" .
+                ", " . self::TIPO . " as tipo" .
+                ", " . self::DIRECCION . " as direccion" .
+                ", " . self::LATITUD . " as lat" .
+                ", " . self::LONGITUD . " as lon" .
+                " FROM " . self::NOMBRE_TABLA .
+                " WHERE " . self::ID_USUARIO . "=? AND " . self::TIPO . "=?";
 
             // Preparar sentencia
             $sentencia = ConexionBD::obtenerInstancia()->obtenerBD()->prepare($comando);
@@ -168,14 +218,18 @@ class favoritos
         }
     }
 
-    private function obtenerFavoritos($idUsuario)
+    private
+    function obtenerFavoritos($idUsuario)
     {
         try {
             $comando = "SELECT " . self::ID_FAVORITO . " as idFavorito" .
-                        ", " . self::ID_CONTENEDOR . " as idContenedor" .
-                        ", " . self::TIPO . " as tipo" .
-                        " FROM " . self::NOMBRE_TABLA .
-                        " WHERE " . self::ID_USUARIO . "=?";
+                ", " . self::ID_CONTENEDOR . " as idContenedor" .
+                ", " . self::TIPO . " as tipo" .
+                ", " . self::DIRECCION . " as direccion" .
+                ", " . self::LATITUD . " as lat" .
+                ", " . self::LONGITUD . " as lon" .
+                " FROM " . self::NOMBRE_TABLA .
+                " WHERE " . self::ID_USUARIO . "=?";
 
             // Preparar sentencia
             $sentencia = ConexionBD::obtenerInstancia()->obtenerBD()->prepare($comando);
