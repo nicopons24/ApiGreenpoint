@@ -14,6 +14,7 @@ class usuarios
 
     const ESTADO_CREACION_EXITOSA = 1;
     const ESTADO_CREACION_FALLIDA = 2;
+    const ESTADO_REGISTRO_EXISTENTE = 9;
     const ESTADO_ERROR_BD = 3;
     const ESTADO_AUSENCIA_CLAVE_API = 4;
     const ESTADO_CLAVE_NO_AUTORIZADA = 5;
@@ -30,30 +31,102 @@ class usuarios
         } else if ($peticion[0] == 'google') {
             return self::loginGoogle();
         } else if ($peticion[0] == 'facebook') {
-            //return self::
+            return self::loginFacebook();
         } else {
             throw new ExcepcionApi(self::ESTADO_URL_INCORRECTA, "Url mal formada", 400);
         }
     }
 
-    private function loginGoogle() {
+    private function loginGoogle()
+    {
         $cuerpo = file_get_contents('php://input');
         $usuario = json_decode($cuerpo);
 
         $correo = $usuario->correo;
 
-        if(self::isUsuarioRegistrado($correo)){
-            $id = $usuario->contrasena;
-            return self::vincularGoogle($correo, $id);
-        }
-        else
+        if (self::isUsuarioRegistrado($correo)) {
+            return self::vincularGoogle($usuario);
+        } else
             return self::registrarGoogle($usuario);
     }
 
-    private function vincularGoogle($correo, $id) {
-        $comando = "UPDATE " . self::NOMBRE_TABLA . " SET " . self::GOOGLE . " = ? WHERE " . self::CORREO . " = ?";
+    private function loginFacebook()
+    {
+        $cuerpo = file_get_contents('php://input');
+        $usuario = json_decode($cuerpo);
+
+        $correo = $usuario->correo;
+
+        if (self::isUsuarioRegistrado($correo)) {
+            return self::vincularFacebook($usuario);
+        } else
+            return self::registrarFacebook($usuario);
+    }
+
+    private function vincularGoogle($usuario)
+    {
+        $id = $usuario->google;
+        $correo = $usuario->correo;
 
         $pdo = ConexionBD::obtenerInstancia()->obtenerBD();
+
+        $comando = "SELECT * FROM " . self::NOMBRE_TABLA . " WHERE " .
+            self::CORREO . " = ? ";
+
+        $sentencia = $pdo->prepare($comando);
+
+        $sentencia->bindParam(1, $correo);
+
+        $sentencia->execute();
+
+        $resultado = $sentencia->fetchAll(PDO::FETCH_ASSOC);
+        $idGoogle = $resultado[0][self::GOOGLE];
+        if ($idGoogle == null) {
+            return self::vincularIdGoogle($usuario);
+        } elseif ($idGoogle == $id) {
+            return self::comprubarIdGoogle($usuario);
+        } else {
+            throw new ExcepcionApi(self::ESTADO_CREACION_FALLIDA, "La cuenta de Google no es valida");
+        }
+    }
+
+    private function vincularFacebook($usuario)
+    {
+        $id = $usuario->facebook;
+        $correo = $usuario->correo;
+
+        $pdo = ConexionBD::obtenerInstancia()->obtenerBD();
+
+        $comando = "SELECT * FROM " . self::NOMBRE_TABLA . " WHERE " .
+            self::CORREO . " = ? ";
+
+        $sentencia = $pdo->prepare($comando);
+
+        $sentencia->bindParam(1, $correo);
+
+        $sentencia->execute();
+
+        $resultado = $sentencia->fetchAll(PDO::FETCH_ASSOC);
+        $idFacebook = $resultado[0][self::FACEBOOK];
+        if ($idFacebook == null) {
+            return self::vincularIdFacebook($usuario);
+        } elseif ($idFacebook == $id) {
+            return self::comprubarIdFacebook($usuario);
+        } else {
+            throw new ExcepcionApi(self::ESTADO_CREACION_FALLIDA, "La cuenta de Facebook no es valida");
+        }
+    }
+
+    private function vincularIdGoogle($usuario)
+    {
+        $id = $usuario->google;
+        $correo = $usuario->correo;
+
+        $pdo = ConexionBD::obtenerInstancia()->obtenerBD();
+
+        $comando = "UPDATE " . self::NOMBRE_TABLA . " SET " .
+            self::GOOGLE . " = ? WHERE " .
+            self::CORREO . " = ?";
 
         $sentencia = $pdo->prepare($comando);
 
@@ -62,27 +135,174 @@ class usuarios
 
         $resultado = $sentencia->execute();
 
-        if($resultado) {
-            $r = $sentencia->fetch(PDO::FETCH_ASSOC);
+        if ($resultado) {
+            $comando = "SELECT " . self::CLAVE_API . " FROM " . self::NOMBRE_TABLA . " WHERE " . self::CORREO . " = ?";
+
+            $sentencia = $pdo->prepare($comando);
+            $sentencia->bindParam(1, $correo);
+
+            $sentencia->execute();
+
+            $resultado = $sentencia->fetchAll(PDO::FETCH_ASSOC);
             return [
                 "estado" => self::ESTADO_CREACION_EXITOSA,
-                "mensaje" => utf8_encode("Registro con exito!"),
-                "claveApi" => $r[self::CLAVE_API]
+                "mensaje" => utf8_encode("Vinculado con Google"),
+                "claveApi" => $resultado[0][self::CLAVE_API]
             ];
-        }
-        else {
+        } else {
             throw new ExcepcionApi(self::ESTADO_CREACION_FALLIDA, "Ha ocurrido un error");
         }
     }
 
-    private function registrarGoogle($usuario) {
-        $resultado = self::crear($usuario);
+    private function vincularIdFacebook($usuario)
+    {
+        $id = $usuario->facebook;
+        $correo = $usuario->correo;
+
+        $pdo = ConexionBD::obtenerInstancia()->obtenerBD();
+
+        $comando = "UPDATE " . self::NOMBRE_TABLA . " SET " .
+            self::FACEBOOK . " = ? WHERE " .
+            self::CORREO . " = ?";
+
+        $sentencia = $pdo->prepare($comando);
+
+        $sentencia->bindParam(1, $id);
+        $sentencia->bindParam(2, $correo);
+
+        $resultado = $sentencia->execute();
+
         if ($resultado) {
-            $correo = $usuario->correo;
-            $id = $usuario->contrasena;
-            return self::vincularGoogle($correo, $id);
+            $comando = "SELECT " . self::CLAVE_API . " FROM " . self::NOMBRE_TABLA . " WHERE " . self::CORREO . " = ?";
+
+            $sentencia = $pdo->prepare($comando);
+            $sentencia->bindParam(1, $correo);
+
+            $sentencia->execute();
+
+            $resultado = $sentencia->fetchAll(PDO::FETCH_ASSOC);
+            return [
+                "estado" => self::ESTADO_CREACION_EXITOSA,
+                "mensaje" => utf8_encode("Vinculado con Facebook"),
+                "claveApi" => $resultado[0][self::CLAVE_API]
+            ];
+        } else {
+            throw new ExcepcionApi(self::ESTADO_CREACION_FALLIDA, "Ha ocurrido un error");
         }
-        else {
+    }
+
+    private function comprubarIdGoogle($usuario) {
+        $correo = $usuario->correo;
+
+        $pdo = ConexionBD::obtenerInstancia()->obtenerBD();
+
+        $comando = "SELECT " . self::CLAVE_API . " FROM " . self::NOMBRE_TABLA . " WHERE " . self::CORREO . " = ?";
+
+        $sentencia = $pdo->prepare($comando);
+        $sentencia->bindParam(1, $correo);
+
+        $sentencia->execute();
+
+        $resultado = $sentencia->fetchAll(PDO::FETCH_ASSOC);
+        return [
+            "estado" => self::ESTADO_CREACION_EXITOSA,
+            "mensaje" => utf8_encode("Inicio de sesion con Google"),
+            "claveApi" => $resultado[0][self::CLAVE_API]
+        ];
+    }
+
+    private function comprubarIdFacebook($usuario) {
+        $correo = $usuario->correo;
+
+        $pdo = ConexionBD::obtenerInstancia()->obtenerBD();
+
+        $comando = "SELECT " . self::CLAVE_API . " FROM " . self::NOMBRE_TABLA . " WHERE " . self::CORREO . " = ?";
+
+        $sentencia = $pdo->prepare($comando);
+        $sentencia->bindParam(1, $correo);
+
+        $sentencia->execute();
+
+        $resultado = $sentencia->fetchAll(PDO::FETCH_ASSOC);
+        return [
+            "estado" => self::ESTADO_CREACION_EXITOSA,
+            "mensaje" => utf8_encode("Inicio de sesion con Facebook"),
+            "claveApi" => $resultado[0][self::CLAVE_API]
+        ];
+    }
+
+    private function registrarGoogle($usuario)
+    {
+        $nombre = $usuario->nombre;
+        $correo = $usuario->correo;
+        $id = $usuario->google;
+
+        $claveApi = self::generarClaveApi();
+
+        $pdo = ConexionBD::obtenerInstancia()->obtenerBD();
+
+        // Sentencia INSERT
+        $comando = "INSERT INTO " . self::NOMBRE_TABLA . " ( " .
+            self::NOMBRE . "," .
+            self::CLAVE_API . "," .
+            self::CORREO . "," .
+            self::GOOGLE . ")" .
+            " VALUES(?,?,?,?)";
+
+        $sentencia = $pdo->prepare($comando);
+
+        $sentencia->bindParam(1, $nombre);
+        $sentencia->bindParam(2, $claveApi);
+        $sentencia->bindParam(3, $correo);
+        $sentencia->bindParam(4, $id);
+
+        $resultado = $sentencia->execute();
+
+        if ($resultado) {
+            return [
+                "estado" => self::ESTADO_CREACION_EXITOSA,
+                "mensaje" => utf8_encode("Vinculado con Google"),
+                "claveApi" => $claveApi
+            ];
+        } else {
+            throw new ExcepcionApi(self::ESTADO_CREACION_FALLIDA, "Ha ocurrido un error");
+        }
+    }
+
+    private function registrarFacebook($usuario)
+    {
+        $nombre = $usuario->nombre;
+        $correo = $usuario->correo;
+        $id = $usuario->facebook;
+
+        $claveApi = self::generarClaveApi();
+
+        $pdo = ConexionBD::obtenerInstancia()->obtenerBD();
+
+        // Sentencia INSERT
+        $comando = "INSERT INTO " . self::NOMBRE_TABLA . " ( " .
+            self::NOMBRE . "," .
+            self::CLAVE_API . "," .
+            self::CORREO . "," .
+            self::FACEBOOK . ")" .
+            " VALUES(?,?,?,?)";
+
+        $sentencia = $pdo->prepare($comando);
+
+        $sentencia->bindParam(1, $nombre);
+        $sentencia->bindParam(2, $claveApi);
+        $sentencia->bindParam(3, $correo);
+        $sentencia->bindParam(4, $id);
+
+        $resultado = $sentencia->execute();
+
+        if ($resultado) {
+            return [
+                "estado" => self::ESTADO_CREACION_EXITOSA,
+                "mensaje" => utf8_encode("Vinculado con Facebook"),
+                "claveApi" => $claveApi
+            ];
+        } else {
             throw new ExcepcionApi(self::ESTADO_CREACION_FALLIDA, "Ha ocurrido un error");
         }
     }
@@ -125,7 +345,7 @@ class usuarios
         $nombre = $datosUsuario->nombre;
         $correo = $datosUsuario->correo;
 
-        if (self::isUsuarioRegistrado($correo)) {
+        if (!self::isUsuarioRegistrado($correo)) {
 
             $contrasena = $datosUsuario->contrasena;
             $contrasenaEncriptada = self::encriptarContrasena($contrasena);
@@ -164,12 +384,8 @@ class usuarios
             } catch (PDOException $e) {
                 throw new ExcepcionApi(self::ESTADO_ERROR_BD, $e->getMessage());
             }
-        }
-        else {
-            return [
-                "estado" => self::ESTADO_CREACION_FALLIDA,
-                "clave" => null
-            ];
+        } else {
+            throw new ExcepcionApi(self::ESTADO_REGISTRO_EXISTENTE, "El usuario ya existe");
         }
 
     }
@@ -183,9 +399,10 @@ class usuarios
 
         $sentencia->bindParam(1, $correo);
 
-        $resultado = $sentencia->execute();
+        $sentencia->execute();
+        $resultado = $sentencia->rowCount();
 
-        if ($resultado) {
+        if ($resultado > 0) {
             return true;
         } else {
             return false;
