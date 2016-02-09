@@ -9,7 +9,6 @@ class comentarios
     const ID_CONTENEDOR = "id_contenedor";
     const TIPO = "tipo_contenedor";
     const FECHA = "fecha";
-    const TITULO = "titulo";
     const TEXTO = "texto";
 
     const ESTADO_EXITO = 1;
@@ -37,13 +36,13 @@ class comentarios
         $body = file_get_contents('php://input');
         $comentario = json_decode($body);
 
-        $idComentario = self::crear($idUsuario, $comentario);
+        $comentario = self::crear($idUsuario, $comentario);
 
         http_response_code(201);
         return [
             "estado" => self::ESTADO_CREACION_EXITOSA,
             "mensaje" => "Comentario guardado correctamente",
-            "idComentario" => $idComentario
+            "comentarios" => $comentario
         ];
     }
 
@@ -55,7 +54,6 @@ class comentarios
                 $idContenedor = $comentario->idContenedor;
                 $tipo = $comentario->tipo;
                 $fecha = $comentario->fecha;
-                $titulo = $comentario->titulo;
                 $texto = $comentario->texto;
 
                 $pdo = ConexionBD::obtenerInstancia()->obtenerBD();
@@ -65,7 +63,6 @@ class comentarios
                     self::ID_USUARIO . "," .
                     self::ID_CONTENEDOR . "," .
                     self::FECHA . "," .
-                    self::TITULO . "," .
                     self::TEXTO . "," .
                     self::TIPO . ")" .
                     " VALUES(?,?,?,?,?,?)";
@@ -76,14 +73,30 @@ class comentarios
                 $sentencia->bindParam(1, $idUsuario, PDO::PARAM_INT);
                 $sentencia->bindParam(2, $idContenedor, PDO::PARAM_INT);
                 $sentencia->bindParam(3, $fecha);
-                $sentencia->bindParam(4, $titulo);
-                $sentencia->bindParam(5, $texto);
-                $sentencia->bindParam(6, $tipo, PDO::PARAM_INT);
+                $sentencia->bindParam(4, $texto);
+                $sentencia->bindParam(5, $tipo, PDO::PARAM_INT);
+
+                $sentencia->execute();
+                $idComentario = $pdo->lastInsertId();
+
+                // Retornar en el último id insertado
+                $comando = "SELECT c." . self::ID_COMENTARIO . " as idComentario" .
+                    ", u." . usuarios::NOMBRE . " as nombreAutor" .
+                    ", c." . self::FECHA . " as fecha" .
+                    ", c." . self::TEXTO . " as cuerpo" .
+                    " FROM " . self::NOMBRE_TABLA . " c" .
+                    " INNER JOIN " . usuarios::NOMBRE_TABLA . " u" .
+                    " ON c." . self::ID_USUARIO . " = u." . usuarios::ID_USUARIO .
+                    " WHERE " . self::ID_COMENTARIO . "=?";
+
+                // Preparar sentencia
+                $sentencia = ConexionBD::obtenerInstancia()->obtenerBD()->prepare($comando);
+                // Ligar idContenedor
+                $sentencia->bindParam(1, $idComentario, PDO::PARAM_INT);
 
                 $sentencia->execute();
 
-                // Retornar en el último id insertado
-                return $pdo->lastInsertId();
+                return $sentencia->fetchAll(PDO::FETCH_ASSOC);
 
             } catch (PDOException $e) {
                 throw new ExcepcionApi(self::ESTADO_ERROR_BD, $e->getMessage());
@@ -101,7 +114,6 @@ class comentarios
             $comando = "SELECT c." . self::ID_COMENTARIO . " as idComentario" .
                             ", u." . usuarios::NOMBRE . " as nombreAutor" .
                             ", c." . self::FECHA . " as fecha" .
-                            ", c." . self::TITULO . " as titulo" .
                             ", c." . self::TEXTO . " as cuerpo" .
                             " FROM " . self::NOMBRE_TABLA . " c" .
                             " INNER JOIN " . usuarios::NOMBRE_TABLA . " u" .

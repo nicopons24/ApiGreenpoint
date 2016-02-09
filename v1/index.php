@@ -4,6 +4,7 @@ require_once 'datos/ConexionBD.php';
 require 'controladores/usuarios.php';
 require 'controladores/comentarios.php';
 require 'controladores/favoritos.php';
+require 'controladores/alertas.php';
 require 'vistas/VistaJson.php';
 require 'vistas/VistaXML.php';
 require 'utilidades/ExcepcionApi.php';
@@ -56,7 +57,7 @@ else
     throw new ExcepcionApi(ESTADO_URL_INCORRECTA, utf8_encode("No se reconoce la petición"));
 // Obtener recurso
 $recurso = array_shift($peticion);
-$recursos_existentes = array('usuarios', 'favoritos', 'comentarios');
+$recursos_existentes = array('usuarios', 'favoritos', 'comentarios', 'alertas');
 
 // Comprobar si existe el recurso
 if (!in_array($recurso, $recursos_existentes)) {
