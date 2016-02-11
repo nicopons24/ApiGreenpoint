@@ -57,7 +57,7 @@ else
     throw new ExcepcionApi(ESTADO_URL_INCORRECTA, utf8_encode("No se reconoce la petición"));
 // Obtener recurso
 $recurso = array_shift($peticion);
-$recursos_existentes = array('usuarios', 'favoritos', 'comentarios', 'alertas');
+$recursos_existentes = array('usuarios', 'favoritos', 'comentarios', 'alertas', "reciclaje");
 
 // Comprobar si existe el recurso
 if (!in_array($recurso, $recursos_existentes)) {

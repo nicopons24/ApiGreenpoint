@@ -65,7 +65,7 @@ class comentarios
                     self::FECHA . "," .
                     self::TEXTO . "," .
                     self::TIPO . ")" .
-                    " VALUES(?,?,?,?,?,?)";
+                    " VALUES(?,?,?,?,?)";
 
                 // Preparar la sentencia
                 $sentencia = $pdo->prepare($comando);
@@ -97,7 +97,6 @@ class comentarios
                 $sentencia->execute();
 
                 return $sentencia->fetchAll(PDO::FETCH_ASSOC);
-
             } catch (PDOException $e) {
                 throw new ExcepcionApi(self::ESTADO_ERROR_BD, $e->getMessage());
             }
