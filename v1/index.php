@@ -5,6 +5,7 @@ require 'controladores/usuarios.php';
 require 'controladores/comentarios.php';
 require 'controladores/favoritos.php';
 require 'controladores/alertas.php';
+require 'controladores/reciclaje.php';
 require 'vistas/VistaJson.php';
 require 'vistas/VistaXML.php';
 require 'utilidades/ExcepcionApi.php';

@@ -53,7 +53,7 @@ class comentarios
 
                 $idContenedor = $comentario->idContenedor;
                 $tipo = $comentario->tipo;
-                $fecha = $comentario->fecha;
+                $fecha = date("Y-m-d H:i:s");
                 $texto = $comentario->texto;
 
                 $pdo = ConexionBD::obtenerInstancia()->obtenerBD();
@@ -111,14 +111,14 @@ class comentarios
     {
         try {
             $comando = "SELECT c." . self::ID_COMENTARIO . " as idComentario" .
-                            ", u." . usuarios::NOMBRE . " as nombreAutor" .
-                            ", c." . self::FECHA . " as fecha" .
-                            ", c." . self::TEXTO . " as cuerpo" .
-                            " FROM " . self::NOMBRE_TABLA . " c" .
-                            " INNER JOIN " . usuarios::NOMBRE_TABLA . " u" .
-                            " ON c." . self::ID_USUARIO . " = u." . usuarios::ID_USUARIO .
-                            " WHERE " . self::ID_CONTENEDOR . "=? AND " . self::TIPO . "=?" .
-                            " ORDER BY " . self::FECHA . " DESC";
+                ", u." . usuarios::NOMBRE . " as nombreAutor" .
+                ", c." . self::FECHA . " as fecha" .
+                ", c." . self::TEXTO . " as cuerpo" .
+                " FROM " . self::NOMBRE_TABLA . " c" .
+                " INNER JOIN " . usuarios::NOMBRE_TABLA . " u" .
+                " ON c." . self::ID_USUARIO . " = u." . usuarios::ID_USUARIO .
+                " WHERE " . self::ID_CONTENEDOR . "=? AND " . self::TIPO . "=?" .
+                " ORDER BY " . self::FECHA . " DESC";
 
             // Preparar sentencia
             $sentencia = ConexionBD::obtenerInstancia()->obtenerBD()->prepare($comando);
