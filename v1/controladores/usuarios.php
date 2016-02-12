@@ -58,22 +58,27 @@ class usuarios
         $ok = $sentencia->execute();
 
         $resultado = $sentencia->fetchAll(PDO::FETCH_ASSOC);
-        var_dump($resultado);
 
         if ($ok) {
             if (self::validarContrasena($oldpassword, $resultado[0][self::CONTRASENA])) {
-                $comando = "UPDATE " . SELF::NOMBRE_TABLA . " SET " . SELF::CONTRASENA . " = " . $newpassword . " WHERE " . SELF::ID_USUARIO . " =?";
+                $newpassword = self::encriptarContrasena($newpassword);
+
+                $comando = "UPDATE " . SELF::NOMBRE_TABLA . " SET " . SELF::CONTRASENA . " = '" . $newpassword . "' WHERE " . SELF::ID_USUARIO . " = ".$idUsuario;
                 $sentencia = $pdo->prepare($comando);
-                $sentencia->bindParam(1, $idUsuario);
-                $numfiles = $sentencia->execute();
-                if ($numfiles > 0) {
-                    return true;
+                $result = $sentencia->execute();
+
+                if ($result) {
+                    return [
+                        "estado" => self::ESTADO_CREACION_EXITOSA,
+                        "mensaje" => utf8_encode("Contraseña cambiada correctamente"),
+                        "contrasena" => "true"
+                    ];
                 } else {
-                    throw new ExcepcionApi(ESTADO_ERROR_BD, "No se ha podido cambiar la contraseña");
+                    throw new ExcepcionApi(self::ESTADO_ERROR_BD, "No se ha podido cambiar la contraseña");
                 }
             }
         }
-        throw new ExcepcionApi(ESTADO_ERROR_BD, "Error al cambiar la contraseña");
+        throw new ExcepcionApi(self::ESTADO_ERROR_BD, "Error al cambiar la contraseña");
     }
 
     private function loginGoogle()
