@@ -32,40 +32,50 @@ class usuarios
             return self::loginGoogle();
         } else if ($peticion[0] == 'facebook') {
             return self::loginFacebook();
-        }else if ($peticion[0] == 'password'){
+        } else if ($peticion[0] == 'password') {
             return self::changePassword();
         } else {
             throw new ExcepcionApi(self::ESTADO_URL_INCORRECTA, "Url mal formada", 400);
         }
     }
 
-    private function changePassword(){
+    private function changePassword()
+    {
+
         $cuerpo = file_get_contents('php://input');
-        $passwords = json_decode($cuerpo);
+        $usuario = json_decode($cuerpo);
+
         $idUsuario = usuarios::autorizar();
 
-        $oldpassword = $passwords->oldpassword;
-        $newpassword = $passwords->newpassword;
+        $oldpassword = $usuario->oldpassword;
+        $newpassword = $usuario->newpassword;
 
         $pdo = ConexionBD::obtenerInstancia()->obtenerBD();
 
-        $consultapassword="SELECT ".SELF::CONTRASENA." WHERE ".SELF::ID_USUARIO." = ".$idUsuario;
-        $sentenciapassword=$pdo->prepare($consultapassword);
-        $oldpassuser=$sentenciapassword->execute();
+        $comando = "SELECT " . SELF::CONTRASENA . " FROM " . self::NOMBRE_TABLA . " WHERE " . SELF::ID_USUARIO . " = " . $idUsuario;
+        $sentencia = $pdo->prepare($comando);
 
-        if($this->validarContrasena($oldpassword,$oldpassuser)){
-            $comando = "UPDATE ".SELF::NOMBRE_TABLA." SET ".SELF::CONTRASENA." = ".$newpassword." WHERE ".SELF::ID_USUARIO." =?";
-            $sentencia=$pdo->prepare($comando);
-            $sentencia->bindParam(1,$idUsuario);
-            $numfiles=$sentencia->execute();
-            if($numfiles>0){
-                return true;
-            }else{
-                return false;
+        $ok = $sentencia->execute();
+
+        $resultado = $sentencia->fetchAll(PDO::FETCH_ASSOC);
+        var_dump($resultado);
+
+        if ($ok) {
+            if (self::validarContrasena($oldpassword, $resultado[0][self::CONTRASENA])) {
+                $comando = "UPDATE " . SELF::NOMBRE_TABLA . " SET " . SELF::CONTRASENA . " = " . $newpassword . " WHERE " . SELF::ID_USUARIO . " =?";
+                $sentencia = $pdo->prepare($comando);
+                $sentencia->bindParam(1, $idUsuario);
+                $numfiles = $sentencia->execute();
+                if ($numfiles > 0) {
+                    return true;
+                } else {
+                    throw new ExcepcionApi(ESTADO_ERROR_BD, "No se ha podido cambiar la contraseña");
+                }
             }
         }
-        return false;
+        throw new ExcepcionApi(ESTADO_ERROR_BD, "Error al cambiar la contraseña");
     }
+
     private function loginGoogle()
     {
         $cuerpo = file_get_contents('php://input');
@@ -220,7 +230,8 @@ class usuarios
         }
     }
 
-    private function comprubarIdGoogle($usuario) {
+    private function comprubarIdGoogle($usuario)
+    {
         $correo = $usuario->correo;
 
         $pdo = ConexionBD::obtenerInstancia()->obtenerBD();
@@ -240,7 +251,8 @@ class usuarios
         ];
     }
 
-    private function comprubarIdFacebook($usuario) {
+    private function comprubarIdFacebook($usuario)
+    {
         $correo = $usuario->correo;
 
         $pdo = ConexionBD::obtenerInstancia()->obtenerBD();

@@ -33,6 +33,24 @@ class reciclaje {
     const ESTADO_FALLA_DESCONOCIDA = 7;
     const ESTADO_PARAMETROS_INCORRECTOS = 8;
 
+    public static function get() {
+
+        $idUsuario = usuarios::autorizar();
+
+        $ano = self::consultaDatosAno($idUsuario);
+        $mes = self::consultaDatosMes($idUsuario);
+        $semana = self::conasultaSemana($idUsuario);
+
+        return [
+            "estado" => self::ESTADO_EXITO,
+            "mensaje" => "Obtencion de datos correcta",
+            "datos" => array(
+                "anual" => $ano,
+                "mensual" => $mes,
+                "semanal" => $semana
+            )];
+    }
+
     public static function post()
     {
         $idUsuario = usuarios::autorizar();
@@ -48,6 +66,121 @@ class reciclaje {
             "mensaje" => "Accion registrada correctamente",
             "idReciclaje" => $id
         ];
+    }
+
+    private function conasultaSemana($idUsuario) {
+
+        $comando  = "SELECT ". self::TIPO ." as tipo, ".
+            "sum(".self::PESO.") as cantidad " .
+            "FROM " . self::NOMBRE_TABLA .
+            " WHERE " . self::ID_USUARIO . " = ? AND ".
+            "year(current_date()) = year(". self::FECHA .") AND " .
+            "month(current_date()) = month(". self::FECHA .") AND " .
+            "week(current_date()) = week(". self::FECHA .") " .
+            "GROUP BY monthname(".self::FECHA."), " . self::TIPO;
+
+        $pdo = ConexionBD::obtenerInstancia()->obtenerBD();
+
+        $sentencia = $pdo->prepare($comando);
+
+        $sentencia->bindParam(1, $idUsuario);
+
+        $resultado = $sentencia->execute();
+        if ($resultado) {
+            $array = $sentencia->fetchAll(PDO::FETCH_ASSOC);
+            return $array;
+        }
+        else {
+            throw new ExcepcionApi(self::ESTADO_ERROR, "Error al consultar las estadisticas");
+        }
+    }
+
+    private function consultaDatosMes($idUsuario) {
+
+        $comando  = "SELECT ". self::TIPO ." as tipo, ".
+            "month(".self::FECHA.") as mes, " .
+            "sum(".self::PESO.") as cantidad " .
+            "FROM " . self::NOMBRE_TABLA .
+            " WHERE " . self::ID_USUARIO . " = ? AND ".
+            "year(current_date()) = year(". self::FECHA .") AND " .
+            "month(current_date()) = month(". self::FECHA .") " .
+            "GROUP BY monthname(".self::FECHA."), " . self::TIPO;
+
+        $pdo = ConexionBD::obtenerInstancia()->obtenerBD();
+
+        $sentencia = $pdo->prepare($comando);
+
+        $sentencia->bindParam(1, $idUsuario);
+
+        $resultado = $sentencia->execute();
+        if ($resultado) {
+            $array = $sentencia->fetchAll(PDO::FETCH_ASSOC);
+            $datosMes = array();
+            $mes = null;
+            for ($i = 0; $i < count($array); $i++) {
+                $mes = $array[$i]['mes'];
+                $datos = [
+                    "tipo"=>$array[$i]['tipo'],
+                    "cantidad"=>$array[$i]['cantidad']
+                ];
+                array_push($datosMes, $datos);
+            }
+            return [
+                "mes" => $mes,
+                "datos" => $datosMes
+            ];
+        }
+        else {
+            throw new ExcepcionApi(self::ESTADO_ERROR, "Error al consultar las estadisticas");
+        }
+    }
+
+    private function consultaDatosAno($idUsuario) {
+
+        $comando  = "SELECT ". self::TIPO ." as tipo, ".
+            "month(".self::FECHA.") as mes, " .
+            "sum(".self::PESO.") as cantidad " .
+            "FROM " . self::NOMBRE_TABLA .
+            " WHERE " . self::ID_USUARIO . " = ? AND ".
+            "year(current_date()) = year(". self::FECHA .") " .
+            "GROUP BY monthname(".self::FECHA."), " . self::TIPO;
+
+        $pdo = ConexionBD::obtenerInstancia()->obtenerBD();
+
+        $sentencia = $pdo->prepare($comando);
+
+        $sentencia->bindParam(1, $idUsuario);
+
+        $resultado = $sentencia->execute();
+        if ($resultado) {
+            $array = $sentencia->fetchAll(PDO::FETCH_ASSOC);
+            $meses = array(
+                "1" => array(),
+                "2" => array(),
+                "3" => array(),
+                "4" => array(),
+                "5" => array(),
+                "6" => array(),
+                "7" => array(),
+                "8" => array(),
+                "9" => array(),
+                "10" => array(),
+                "11" => array(),
+                "12" => array(),
+            );
+            for ($i = 0; $i < count($array); $i++) {
+                $mes = $array[$i]['mes'];
+                $datos = [
+                    "tipo"=>$array[$i]['tipo'],
+                    "cantidad"=>$array[$i]['cantidad']
+                ];
+                array_push($meses[$mes], $datos);
+            }
+            return $meses;
+        }
+        else {
+            throw new ExcepcionApi(self::ESTADO_ERROR, "Error al consultar las estadisticas");
+        }
     }
 
     private function crear($idUsuario, $reciclaje)
