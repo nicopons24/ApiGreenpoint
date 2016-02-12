@@ -32,11 +32,40 @@ class usuarios
             return self::loginGoogle();
         } else if ($peticion[0] == 'facebook') {
             return self::loginFacebook();
+        }else if ($peticion[0] == 'password'){
+            return self::changePassword();
         } else {
             throw new ExcepcionApi(self::ESTADO_URL_INCORRECTA, "Url mal formada", 400);
         }
     }
 
+    private function changePassword(){
+        $cuerpo = file_get_contents('php://input');
+        $passwords = json_decode($cuerpo);
+        $idUsuario = usuarios::autorizar();
+
+        $oldpassword = $passwords->oldpassword;
+        $newpassword = $passwords->newpassword;
+
+        $pdo = ConexionBD::obtenerInstancia()->obtenerBD();
+
+        $consultapassword="SELECT ".SELF::CONTRASENA." WHERE ".SELF::ID_USUARIO." = ".$idUsuario;
+        $sentenciapassword=$pdo->prepare($consultapassword);
+        $oldpassuser=$sentenciapassword->execute();
+
+        if($this->validarContrasena($oldpassword,$oldpassuser)){
+            $comando = "UPDATE ".SELF::NOMBRE_TABLA." SET ".SELF::CONTRASENA." = ".$newpassword." WHERE ".SELF::ID_USUARIO." =?";
+            $sentencia=$pdo->prepare($comando);
+            $sentencia->bindParam(1,$idUsuario);
+            $numfiles=$sentencia->execute();
+            if($numfiles>0){
+                return true;
+            }else{
+                return false;
+            }
+        }
+        return false;
+    }
     private function loginGoogle()
     {
         $cuerpo = file_get_contents('php://input');
