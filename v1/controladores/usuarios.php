@@ -11,6 +11,7 @@ class usuarios
     const CLAVE_API = "clave_api";
     const GOOGLE = "IdGoogle";
     const FACEBOOK = "IdFacebook";
+    const IMAGEN = "img";
 
     const ESTADO_CREACION_EXITOSA = 1;
     const ESTADO_CREACION_FALLIDA = 2;
@@ -34,8 +35,39 @@ class usuarios
             return self::loginFacebook();
         } else if ($peticion[0] == 'password') {
             return self::changePassword();
+        } else if ($peticion[0] = 'imagen') {
+            return self::updateImg();
         } else {
             throw new ExcepcionApi(self::ESTADO_URL_INCORRECTA, "Url mal formada", 400);
+        }
+    }
+
+    private function updateImg()
+    {
+        $idUsuario = usuarios::autorizar();
+
+        $cuerpo = file_get_contents('php://input');
+        $json = json_decode($cuerpo);
+
+        $imagen = $json->imagen;
+
+        $comando = "UPDATE " . self::NOMBRE_TABLA . " SET " . self::IMAGEN . " = ? WHERE " . self::ID_USUARIO . " = ?";
+
+        $pdo = ConexionBD::obtenerInstancia()->obtenerBD();
+
+        $sentencia = $pdo->prepare($comando);
+
+        $sentencia->bindParam(1, $imagen);
+        $sentencia->bindParam(2, $idUsuario);
+
+        $ok = $sentencia->execute();
+
+        if ($ok) {
+            return [
+                "estado" => self::ESTADO_CREACION_EXITOSA,
+                "mensaje" => utf8_encode("Imagen actualizada correctamente"),
+                "imagen" => "true"
+            ];
         }
     }
 
@@ -63,7 +95,7 @@ class usuarios
             if (self::validarContrasena($oldpassword, $resultado[0][self::CONTRASENA])) {
                 $newpassword = self::encriptarContrasena($newpassword);
 
-                $comando = "UPDATE " . SELF::NOMBRE_TABLA . " SET " . SELF::CONTRASENA . " = '" . $newpassword . "' WHERE " . SELF::ID_USUARIO . " = ".$idUsuario;
+                $comando = "UPDATE " . SELF::NOMBRE_TABLA . " SET " . SELF::CONTRASENA . " = '" . $newpassword . "' WHERE " . SELF::ID_USUARIO . " = " . $idUsuario;
                 $sentencia = $pdo->prepare($comando);
                 $result = $sentencia->execute();
 
@@ -491,7 +523,8 @@ class usuarios
                 $respuesta["nombre"] = $usuarioBD[self::NOMBRE];
                 $respuesta["correo"] = $usuarioBD[self::CORREO];
                 $respuesta["claveApi"] = $usuarioBD[self::CLAVE_API];
-                return ["estado" => 1, "usuario" => $respuesta];
+                $respuesta["imagen"] = $usuarioBD[self::IMAGEN];
+                return ["estado" => 1, "usuario" => $respuesta, ];
             } else {
                 throw new ExcepcionApi(self::ESTADO_FALLA_DESCONOCIDA,
                     "Ha ocurrido un error");
@@ -541,7 +574,8 @@ class usuarios
             self::NOMBRE . "," .
             self::CONTRASENA . "," .
             self::CORREO . "," .
-            self::CLAVE_API .
+            self::CLAVE_API .  "," .
+            self::IMAGEN .
             " FROM " . self::NOMBRE_TABLA .
             " WHERE " . self::CORREO . "=?";
 
