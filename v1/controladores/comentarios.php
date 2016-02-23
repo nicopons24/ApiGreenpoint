@@ -34,7 +34,7 @@ class comentarios
         $idUsuario = usuarios::autorizar();
 
         $body = file_get_contents('php://input');
-        $comentario = json_decode($body);
+        $comentario = json_decode(utf8_encode($body));
 
         $comentario = self::crear($idUsuario, $comentario);
 
@@ -112,6 +112,7 @@ class comentarios
         try {
             $comando = "SELECT c." . self::ID_COMENTARIO . " as idComentario" .
                 ", u." . usuarios::NOMBRE . " as nombreAutor" .
+                ", u." . usuarios::IMAGEN . " as encodedImg" .
                 ", c." . self::FECHA . " as fecha" .
                 ", c." . self::TEXTO . " as cuerpo" .
                 " FROM " . self::NOMBRE_TABLA . " c" .

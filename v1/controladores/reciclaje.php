@@ -56,7 +56,7 @@ class reciclaje {
         $idUsuario = usuarios::autorizar();
 
         $body = file_get_contents('php://input');
-        $reciclaje = json_decode($body);
+        $reciclaje = json_decode(utf8_encode($body));
 
         $id = self::crear($idUsuario, $reciclaje);
 

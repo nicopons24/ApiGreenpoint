@@ -47,7 +47,7 @@ class usuarios
         $idUsuario = usuarios::autorizar();
 
         $cuerpo = file_get_contents('php://input');
-        $json = json_decode($cuerpo);
+        $json = json_decode(utf8_encode($cuerpo));
 
         $imagen = $json->imagen;
 
